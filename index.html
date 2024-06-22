@@ -13,6 +13,7 @@
       height: 100vh;
       margin: 0;
       flex-direction: column;
+      transition: background-color 0.5s;
     }
     .values {
       font-size: 20px;
@@ -30,14 +31,15 @@
     <p>Y: <span id="y">0</span></p>
     <p>Z: <span id="z">0</span></p>
     <p>Сила удара: <span id="impactForce">0</span></p>
+    <p>Время реакции: <span id="reactionTime">0</span> мс</p>
   </div>
 
   <button id="requestPermission">Предоставить доступ к датчикам</button>
-  <button id="clearValues">Сбросить значения</button>
-
   <script>
     let maxValues = { x: 0, y: 0, z: 0 };
     let maxImpactForce = 0;
+    let startTime = 0;
+    let reacted = false;
 
     document.getElementById('requestPermission').addEventListener('click', function() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -45,9 +47,12 @@
           .then(response => {
             if (response === 'granted') {
               window.addEventListener('devicemotion', event => {
-                updateMaxValues(event.acceleration);
-                displayValues();
+                if (!reacted) {
+                  updateMaxValues(event.acceleration);
+                  displayValues();
+                }
               });
+              prepareForImpact();
             } else {
               alert('Доступ к датчикам отклонен.');
             }
@@ -60,11 +65,13 @@
       }
     });
 
-    document.getElementById('clearValues').addEventListener('click', function() {
-      maxValues = { x: 0, y: 0, z: 0 };
-      maxImpactForce = 0;
-      displayValues();
-    });
+    function prepareForImpact() {
+      setTimeout(() => {
+        document.body.style.backgroundColor = 'red';
+        startTime = performance.now();
+        reacted = false;
+      }, (Math.random() * 3 + 2) * 1000);
+    }
 
     function updateMaxValues(acceleration) {
       let impactForce = calculateImpactForce(acceleration);
@@ -81,6 +88,18 @@
       if (acceleration.z >= 1) {
         maxValues.z = Math.max(maxValues.z, acceleration.z);
       }
+
+      if (impactForce > 20 && !reacted) {
+        let reactionTime = performance.now() - startTime;
+        reacted = true;
+        document.body.style.backgroundColor = 'green';
+        document.getElementById('reactionTime').textContent = reactionTime.toFixed(2);
+
+        setTimeout(() => {
+          resetValues();
+          prepareForImpact();
+        }, (Math.random() * 3 + 2) * 1000);
+      }
     }
 
     function calculateImpactForce(acceleration) {
@@ -95,6 +114,13 @@
       document.getElementById('y').textContent = maxValues.y >= 1 ? maxValues.y.toFixed(2) : '0';
       document.getElementById('z').textContent = maxValues.z >= 1 ? maxValues.z.toFixed(2) : '0';
       document.getElementById('impactForce').textContent = maxImpactForce >= 1 ? maxImpactForce.toFixed(2) : '0';
+    }
+
+    function resetValues() {
+      maxValues = { x: 0, y: 0, z: 0 };
+      maxImpactForce = 0;
+      displayValues();
+      document.getElementById('reactionTime').textContent = '0';
     }
   </script>
 </body>
