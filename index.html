@@ -29,6 +29,7 @@
     <p>X: <span id="x">0</span></p>
     <p>Y: <span id="y">0</span></p>
     <p>Z: <span id="z">0</span></p>
+    <p>Сила удара: <span id="impactForce">0</span></p>
   </div>
 
   <button id="requestPermission">Предоставить доступ к датчикам</button>
@@ -36,10 +37,10 @@
 
   <script>
     let maxValues = { x: 0, y: 0, z: 0 };
+    let maxImpactForce = 0;
 
     document.getElementById('requestPermission').addEventListener('click', function() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        // Запрашиваем доступ к движению и ориентации устройства
         DeviceMotionEvent.requestPermission()
           .then(response => {
             if (response === 'granted') {
@@ -61,10 +62,16 @@
 
     document.getElementById('clearValues').addEventListener('click', function() {
       maxValues = { x: 0, y: 0, z: 0 };
+      maxImpactForce = 0;
       displayValues();
     });
 
     function updateMaxValues(acceleration) {
+      let impactForce = calculateImpactForce(acceleration);
+      if (impactForce > maxImpactForce) {
+        maxImpactForce = impactForce;
+      }
+
       if (acceleration.x >= 1) {
         maxValues.x = Math.max(maxValues.x, acceleration.x);
       }
@@ -76,10 +83,18 @@
       }
     }
 
+    function calculateImpactForce(acceleration) {
+      let x = acceleration.x || 0;
+      let y = acceleration.y || 0;
+      let z = acceleration.z || 0;
+      return Math.sqrt(x * x + y * y + z * z);
+    }
+
     function displayValues() {
       document.getElementById('x').textContent = maxValues.x >= 1 ? maxValues.x.toFixed(2) : '0';
       document.getElementById('y').textContent = maxValues.y >= 1 ? maxValues.y.toFixed(2) : '0';
       document.getElementById('z').textContent = maxValues.z >= 1 ? maxValues.z.toFixed(2) : '0';
+      document.getElementById('impactForce').textContent = maxImpactForce >= 1 ? maxImpactForce.toFixed(2) : '0';
     }
   </script>
 </body>
