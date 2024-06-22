@@ -17,6 +17,10 @@
     .values {
       font-size: 20px;
     }
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -27,9 +31,12 @@
     <p>Z: <span id="z">0</span></p>
   </div>
 
-  <button id="requestPermission" style="padding:10px 20px; margin-top:20px;">Предоставить доступ к датчикам</button>
+  <button id="requestPermission">Предоставить доступ к датчикам</button>
+  <button id="clearValues">Сбросить значения</button>
 
   <script>
+    let maxValues = { x: 0, y: 0, z: 0 };
+
     document.getElementById('requestPermission').addEventListener('click', function() {
       if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
         // Запрашиваем доступ к движению и ориентации устройства
@@ -37,9 +44,8 @@
           .then(response => {
             if (response === 'granted') {
               window.addEventListener('devicemotion', event => {
-                document.getElementById('x').textContent = event.acceleration.x.toFixed(2);
-                document.getElementById('y').textContent = event.acceleration.y.toFixed(2);
-                document.getElementById('z').textContent = event.acceleration.z.toFixed(2);
+                updateMaxValues(event.acceleration);
+                displayValues();
               });
             } else {
               alert('Доступ к датчикам отклонен.');
@@ -52,6 +58,29 @@
         alert("DeviceMotionEvent не поддерживается вашим устройством или страницей.");
       }
     });
+
+    document.getElementById('clearValues').addEventListener('click', function() {
+      maxValues = { x: 0, y: 0, z: 0 };
+      displayValues();
+    });
+
+    function updateMaxValues(acceleration) {
+      if (acceleration.x >= 1) {
+        maxValues.x = Math.max(maxValues.x, acceleration.x);
+      }
+      if (acceleration.y >= 1) {
+        maxValues.y = Math.max(maxValues.y, acceleration.y);
+      }
+      if (acceleration.z >= 1) {
+        maxValues.z = Math.max(maxValues.z, acceleration.z);
+      }
+    }
+
+    function displayValues() {
+      document.getElementById('x').textContent = maxValues.x >= 1 ? maxValues.x.toFixed(2) : '0';
+      document.getElementById('y').textContent = maxValues.y >= 1 ? maxValues.y.toFixed(2) : '0';
+      document.getElementById('z').textContent = maxValues.z >= 1 ? maxValues.z.toFixed(2) : '0';
+    }
   </script>
 </body>
 </html>
