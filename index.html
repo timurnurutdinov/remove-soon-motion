@@ -27,23 +27,31 @@
     <p>Z: <span id="z">0</span></p>
   </div>
 
+  <button id="requestPermission" style="padding:10px 20px; margin-top:20px;">Предоставить доступ к датчикам</button>
+
   <script>
-    if (window.DeviceMotionEvent) {
-      // Запрашиваем доступ к движению и ориентации устройстваs
-      DeviceMotionEvent.requestPermission()
-        .then(response => {
-          if (response == 'granted') {
-            window.addEventListener('devicemotion', event => {
-              document.getElementById('x').textContent = event.acceleration.x.toFixed(2);
-              document.getElementById('y').textContent = event.acceleration.y.toFixed(2);
-              document.getElementById('z').textContent = event.acceleration.z.toFixed(2);
-            });
-          }
-        })
-        .catch(console.error);
-    } else {
-      alert("DeviceMotionEvent не поддерживается вашим устройством.");
-    }
+    document.getElementById('requestPermission').addEventListener('click', function() {
+      if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        // Запрашиваем доступ к движению и ориентации устройства
+        DeviceMotionEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              window.addEventListener('devicemotion', event => {
+                document.getElementById('x').textContent = event.acceleration.x.toFixed(2);
+                document.getElementById('y').textContent = event.acceleration.y.toFixed(2);
+                document.getElementById('z').textContent = event.acceleration.z.toFixed(2);
+              });
+            } else {
+              alert('Доступ к датчикам отклонен.');
+            }
+          })
+          .catch(error => {
+            console.error('Request Permission Error:', error);
+          });
+      } else {
+        alert("DeviceMotionEvent не поддерживается вашим устройством или страницей.");
+      }
+    });
   </script>
 </body>
 </html>
