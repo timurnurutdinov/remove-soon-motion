@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Акселерометр для iPhone</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+    .values {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Считывание значений акселерометра</h1>
+  <div class="values">
+    <p>X: <span id="x">0</span></p>
+    <p>Y: <span id="y">0</span></p>
+    <p>Z: <span id="z">0</span></p>
+  </div>
+
+  <script>
+    if (window.DeviceMotionEvent) {
+      // Запрашиваем доступ к движению и ориентации устройства
+      DeviceMotionEvent.requestPermission()
+        .then(response => {
+          if (response == 'granted') {
+            window.addEventListener('devicemotion', event => {
+              document.getElementById('x').textContent = event.acceleration.x.toFixed(2);
+              document.getElementById('y').textContent = event.acceleration.y.toFixed(2);
+              document.getElementById('z').textContent = event.acceleration.z.toFixed(2);
+            });
+          }
+        })
+        .catch(console.error);
+    } else {
+      alert("DeviceMotionEvent не поддерживается вашим устройством.");
+    }
+  </script>
+</body>
+</html>
